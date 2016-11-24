@@ -1,6 +1,9 @@
 <?php
 
-header('Content-Type: text/plain; charset=utf-8');
+header('Content-Type:  html; charset=utf-8');
+//include("templates/header.html");
+//include("templates/index.html");
+//include("templates/footer.html");
 
 try {
 
@@ -61,7 +64,8 @@ try {
     //$pdf2txt = "c:\Python27\Scripts\pdf2txt.py";
     $command = escapeshellcmd("pdf2txt.py"." ".$pdf_file);
     $output = shell_exec("pdf2txt.py"." ".$pdf_file);
-    echo $output;
+    parse($output);
+
 
 } catch (RuntimeException $e) {
 
@@ -69,6 +73,32 @@ try {
 
 }
 
+function parse($txt) {
+  $rows = explode("\n", $txt);
+  $line_counter = 1;
 
+  foreach($rows as $row) {
+    if ($line_counter == 3) { $line3 = $row; };
+    if ($line_counter == 9) { $line9 = $row; };
+    $line_counter++;
+  }
+
+
+  $line3= split("所有者一覧表", $line3);
+  $line9= split("┃", $line9);
+  $parsed_str_1 = str_replace("　", "", $line3[0]);
+  $parsed_str_2 = split("　│", $line9[1])[0];
+  $parsed_str_3 = split("　│", $line9[1])[1];
+
+  echo $parsed_str_1;
+  echo "\n";
+  echo $parsed_str_2;
+  echo "\n";
+  echo $parsed_str_3;
+  echo "\n";
+
+
+}
 
 ?>
+
