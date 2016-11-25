@@ -1,4 +1,5 @@
 <?php
+include 'Classes/PHPExcel.php';
 
 header('Content-Type:  html; charset=utf-8');
 //include("templates/header.html");
@@ -62,9 +63,9 @@ try {
 
     //$python = "c:\Python27\python.exe";
     //$pdf2txt = "c:\Python27\Scripts\pdf2txt.py";
-    $command = escapeshellcmd("pdf2txt.py"." ".$pdf_file);
-    $output = shell_exec("pdf2txt.py"." ".$pdf_file);
-    parse($output);
+    //$command = escapeshellcmd("pdf2txt.py"." ".$pdf_file);
+    $output = shell_exec("c:\Python27\python.exe c:\Python27\Scripts\pdf2txt.py"." ".$pdf_file);
+    parse($output, $pdf_file);
 
 
 } catch (RuntimeException $e) {
@@ -73,7 +74,7 @@ try {
 
 }
 
-function parse($txt) {
+function parse($txt, $pdf_file) {
   $rows = explode("\n", $txt);
   $line_counter = 1;
 
@@ -84,20 +85,32 @@ function parse($txt) {
   }
 
 
-  $line3= split("所有者一覧表", $line3);
-  $line9= split("┃", $line9);
+  $line3= explode("所有者一覧表", $line3);
+  $line9= explode("┃", $line9);
   $parsed_str_1 = str_replace("　", "", $line3[0]);
-  $parsed_str_2 = split("　│", $line9[1])[0];
-  $parsed_str_3 = split("　│", $line9[1])[1];
+  $parsed_str_2 = explode("　│", $line9[1])[0];
+  $parsed_str_3 = explode("　│", $line9[1])[1];
 
-  echo $parsed_str_1;
-  echo "\n";
-  echo $parsed_str_2;
-  echo "\n";
-  echo $parsed_str_3;
-  echo "\n";
+  $objPHPExcel = new PHPExcel();
+  $objPHPExcel->getProperties()->setCreator("Real Creative");
+  $objPHPExcel->getProperties()->setLastModifiedBy("Real Creative");
+  $objPHPExcel->setActiveSheetIndex(0);
+  $objPHPExcel->getActiveSheet()->SetCellValue('A1', '何');
+  $objPHPExcel->getActiveSheet()->SetCellValue('B1', '何');
+  $objPHPExcel->getActiveSheet()->SetCellValue('C1', '何');
+  $objPHPExcel->getActiveSheet()->SetCellValue('D1', '地図');
+  $objPHPExcel->getActiveSheet()->SetCellValue('A2', $parsed_str_1);
+  $objPHPExcel->getActiveSheet()->SetCellValue('B2', $parsed_str_2);
+  $objPHPExcel->getActiveSheet()->SetCellValue('C2', $parsed_str_3);
+  $objPHPExcel->getActiveSheet()->SetCellValue('D2', googleMapsUrl($parsed_str_2));
 
+  $objWriter = new PHPExcel_Writer_Excel2007($objPHPExcel);
+  $objWriter->save(str_replace('.pdf', '.xlsx', $pdf_file));
+}
 
+function googleMapsUrl($address) {
+  $urlSegment = "https://maps.googleapis.com/maps/api/staticmap?&zoom=17&size=400x400&key=AIzaSyCuSpiJ-P2QHmdCgtdJYwhGOnwp4TkXrtA&center=";
+  return $urlSegment.$address;
 }
 
 ?>
