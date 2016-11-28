@@ -3,6 +3,7 @@ include 'Classes/PHPExcel.php';
 include 'Classes/pdf2txt.php';
 
 header('Content-Type: text/html; charset=utf-8');
+session_start();
 //include("templates/header.html");
 //include("templates/index.html");
 //include("templates/footer.html");
@@ -56,6 +57,10 @@ try {
         sha1_file($_FILES['upfile']['tmp_name']),
         $ext
     );
+    $excel_file = sprintf('.uploads/%s.%s',
+        sha1_file($_FILES['upfile']['tmp_name']),
+        "xlsx"
+    );
     if (!move_uploaded_file($_FILES['upfile']['tmp_name'], $pdf_file)) {
         throw new RuntimeException('Failed to move uploaded file.');
     }
@@ -71,9 +76,10 @@ try {
     //$pdf2txt->setFilename("");
     //$pdf2txt->decodePDF();
     //$output = $pdf2txt->output();
-    parse($output, $pdf_file);
+    parse($output, $excel_file);
 
 
+    echo('<a href="download.php">Excelファイルをダウンロード</a></br></br>');
 
 } catch (RuntimeException $e) {
 
@@ -81,7 +87,7 @@ try {
 
 }
 
-function parse($txt, $pdf_file) {
+function parse($txt, $excel_file) {
   $rows = explode("\n", $txt);
   $line_counter = 1;
 
@@ -112,12 +118,15 @@ function parse($txt, $pdf_file) {
   $objPHPExcel->getActiveSheet()->SetCellValue('D2', googleMapsUrl($parsed_str_2));
 
   $objWriter = new PHPExcel_Writer_Excel2007($objPHPExcel);
-  $objWriter->save(str_replace('.pdf', '.xlsx', $pdf_file));
+  $objWriter->save($excel_file);
 
+  $_SESSION['excelFile'] = $excel_file;
 }
 
 function googleMapsUrl($address) {
   $urlSegment = "https://maps.googleapis.com/maps/api/staticmap?&zoom=17&size=400x400&key=AIzaSyCuSpiJ-P2QHmdCgtdJYwhGOnwp4TkXrtA&center=";
+  echo(sprintf('<iframe width="600" height="450" frameborder="0" style="border:0"
+          src="https://www.google.com/maps/embed/v1/place?q=%s&key=AIzaSyCuSpiJ-P2QHmdCgtdJYwhGOnwp4TkXrtA" allowfullscreen></iframe></br></br>', $address));
   return $urlSegment.$address;
 }
 
