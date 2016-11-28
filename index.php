@@ -1,7 +1,8 @@
 <?php
 include 'Classes/PHPExcel.php';
+include 'Classes/pdf2txt.php';
 
-header('Content-Type:  html; charset=utf-8');
+header('Content-Type: text/html; charset=utf-8');
 //include("templates/header.html");
 //include("templates/index.html");
 //include("templates/footer.html");
@@ -59,13 +60,19 @@ try {
         throw new RuntimeException('Failed to move uploaded file.');
     }
 
-    echo "File is uploaded successfully.\n\n";
+    echo "<h2>ファイルが正常にアップロードされました.</h2>\n\n";
 
     //$python = "c:\Python27\python.exe";
     //$pdf2txt = "c:\Python27\Scripts\pdf2txt.py";
     //$command = escapeshellcmd("pdf2txt.py"." ".$pdf_file);
     $output = shell_exec("c:\Python27\python.exe c:\Python27\Scripts\pdf2txt.py"." ".$pdf_file);
+
+    //$pdf2txt = new PDF2Text();
+    //$pdf2txt->setFilename("");
+    //$pdf2txt->decodePDF();
+    //$output = $pdf2txt->output();
     parse($output, $pdf_file);
+
 
 
 } catch (RuntimeException $e) {
@@ -106,6 +113,7 @@ function parse($txt, $pdf_file) {
 
   $objWriter = new PHPExcel_Writer_Excel2007($objPHPExcel);
   $objWriter->save(str_replace('.pdf', '.xlsx', $pdf_file));
+
 }
 
 function googleMapsUrl($address) {
