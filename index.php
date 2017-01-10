@@ -70,7 +70,7 @@ try {
     //$python = "c:\Python27\python.exe";
     //$pdf2txt = "c:\Python27\Scripts\pdf2txt.py";
     //$command = escapeshellcmd("pdf2txt.py"." ".$pdf_file);
-    $output = shell_exec("c:\Python27\python.exe c:\Python27\Scripts\pdf2txt.py"." ".$pdf_file);
+    $output = shell_exec("pdf2txt.py"." ".$pdf_file);
 
     //$pdf2txt = new PDF2Text();
     //$pdf2txt->setFilename("");
