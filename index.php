@@ -1,6 +1,5 @@
 <?php
 include 'Classes/PHPExcel.php';
-include 'Classes/pdf2txt.php';
 
 header('Content-Type: text/html; charset=utf-8');
 session_start();
