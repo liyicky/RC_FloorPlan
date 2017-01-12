@@ -1,0 +1,12 @@
+{
+    "name": "liyicky/floorplan",
+    "description": "PDF Converter",
+    "type": "project",
+    "authors": [
+        {
+            "name": "liyicky",
+            "email": "liyicky@gmail.com"
+        }
+    ],
+    "require": {}
+}
