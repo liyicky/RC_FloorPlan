@@ -1,6 +1,9 @@
 <?php
+include 'Classes/PHPExcel.php';
+include 'Classes/pdf2txt.php';
 
-header('Content-Type:  html; charset=utf-8');
+header('Content-Type: text/html; charset=utf-8');
+session_start();
 //include("templates/header.html");
 //include("templates/index.html");
 //include("templates/footer.html");
@@ -54,18 +57,29 @@ try {
         sha1_file($_FILES['upfile']['tmp_name']),
         $ext
     );
+    $excel_file = sprintf('.uploads/%s.%s',
+        sha1_file($_FILES['upfile']['tmp_name']),
+        "xlsx"
+    );
     if (!move_uploaded_file($_FILES['upfile']['tmp_name'], $pdf_file)) {
         throw new RuntimeException('Failed to move uploaded file.');
     }
 
-    echo "File is uploaded successfully.\n\n";
+    echo "<h2>ファイルが正常にアップロードされました.</h2>\n\n";
 
     //$python = "c:\Python27\python.exe";
     //$pdf2txt = "c:\Python27\Scripts\pdf2txt.py";
-    $command = escapeshellcmd("pdf2txt.py"." ".$pdf_file);
+    //$command = escapeshellcmd("pdf2txt.py"." ".$pdf_file);
     $output = shell_exec("pdf2txt.py"." ".$pdf_file);
-    parse($output);
 
+    //$pdf2txt = new PDF2Text();
+    //$pdf2txt->setFilename("");
+    //$pdf2txt->decodePDF();
+    //$output = $pdf2txt->output();
+    parse($output, $excel_file);
+
+
+    echo('<a href="download.php">Excelファイルをダウンロード</a></br></br>');
 
 } catch (RuntimeException $e) {
 
@@ -73,7 +87,7 @@ try {
 
 }
 
-function parse($txt) {
+function parse($txt, $excel_file) {
   $rows = explode("\n", $txt);
   $line_counter = 1;
 
@@ -84,20 +98,36 @@ function parse($txt) {
   }
 
 
-  $line3= split("所有者一覧表", $line3);
-  $line9= split("┃", $line9);
+  $line3= explode("所有者一覧表", $line3);
+  $line9= explode("┃", $line9);
   $parsed_str_1 = str_replace("　", "", $line3[0]);
-  $parsed_str_2 = split("　│", $line9[1])[0];
-  $parsed_str_3 = split("　│", $line9[1])[1];
+  $parsed_str_2 = explode("　│", $line9[1])[0];
+  $parsed_str_3 = explode("　│", $line9[1])[1];
 
-  echo $parsed_str_1;
-  echo "\n";
-  echo $parsed_str_2;
-  echo "\n";
-  echo $parsed_str_3;
-  echo "\n";
+  $objPHPExcel = new PHPExcel();
+  $objPHPExcel->getProperties()->setCreator("Real Creative");
+  $objPHPExcel->getProperties()->setLastModifiedBy("Real Creative");
+  $objPHPExcel->setActiveSheetIndex(0);
+  $objPHPExcel->getActiveSheet()->SetCellValue('A1', '何');
+  $objPHPExcel->getActiveSheet()->SetCellValue('B1', '何');
+  $objPHPExcel->getActiveSheet()->SetCellValue('C1', '何');
+  $objPHPExcel->getActiveSheet()->SetCellValue('D1', '地図');
+  $objPHPExcel->getActiveSheet()->SetCellValue('A2', $parsed_str_1);
+  $objPHPExcel->getActiveSheet()->SetCellValue('B2', $parsed_str_2);
+  $objPHPExcel->getActiveSheet()->SetCellValue('C2', $parsed_str_3);
+  $objPHPExcel->getActiveSheet()->SetCellValue('D2', googleMapsUrl($parsed_str_2));
 
+  $objWriter = new PHPExcel_Writer_Excel2007($objPHPExcel);
+  $objWriter->save($excel_file);
 
+  $_SESSION['excelFile'] = $excel_file;
+}
+
+function googleMapsUrl($address) {
+  $urlSegment = "https://maps.googleapis.com/maps/api/staticmap?&zoom=17&size=400x400&key=AIzaSyCuSpiJ-P2QHmdCgtdJYwhGOnwp4TkXrtA&center=";
+  echo(sprintf('<iframe width="600" height="450" frameborder="0" style="border:0"
+          src="https://www.google.com/maps/embed/v1/place?q=%s&key=AIzaSyCuSpiJ-P2QHmdCgtdJYwhGOnwp4TkXrtA" allowfullscreen></iframe></br></br>', $address));
+  return $urlSegment.$address;
 }
 
 ?>
